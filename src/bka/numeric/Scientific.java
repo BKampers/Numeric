@@ -35,27 +35,31 @@ public class Scientific extends Number {
     }
 
     
+    @Override
     public int intValue() {
         return new Double(doubleValue()).intValue();
     }
 
     
+    @Override
     public long longValue() {
         return new Double(doubleValue()).longValue();
     }
 
     
+    @Override
     public float floatValue() {
         return new Double(doubleValue()).floatValue();
     }
 
     
+    @Override
     public double doubleValue() {
         return coefficient * factor();
     }
 
     
-    private double coefficient;
-    private short exponent;
+    private final double coefficient;
+    private final  short exponent;
 
 }

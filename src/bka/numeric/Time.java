@@ -43,7 +43,7 @@ public class Time {
     
     public Time(int seconds) {
         if (seconds % SECONDS_PER_HOUR == 0) {
-            this.value = seconds / bka.numeric.temp.Time.SECONDS_PER_HOUR;
+            this.value = seconds / bka.numeric.Time.SECONDS_PER_HOUR;
             unit = Unit.HOUR;
         }
         else if (seconds % SECONDS_PER_MINUTE == 0) {
@@ -72,7 +72,7 @@ public class Time {
     }
 
     
-    private int value;
-    private Unit unit;
+    private final int value;
+    private final Unit unit;
 
 }
