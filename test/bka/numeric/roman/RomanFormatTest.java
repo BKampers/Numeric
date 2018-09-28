@@ -37,7 +37,7 @@ public class RomanFormatTest {
     }
     
     
-    @Test 
+    @Ignore @Test 
     public void testFieldPosition() {
         RomanNumberFormat formatter = new RomanNumberFormat();
         StringBuffer pattern = new StringBuffer("one: ");
