@@ -4,7 +4,8 @@
 
 package bka.numeric.roman;
 
-import java.util.ArrayList;
+import java.util.*;
+import java.util.regex.*;
 
 /**
  * Converts between integers and Roman number strings
@@ -62,6 +63,32 @@ public class Converter {
         }    
     }
     
+    public long parseLong(String roman) {
+        long value = 0;
+        long factor = 1;
+        int beginIndex = -1;
+        for (int i = 0; i < roman.length(); ++i) {
+            if (roman.charAt(i) == '(') {
+                factor *= 1000;
+            }
+            else if (roman.charAt(i) == ')') {
+                if (beginIndex >=0) {
+                    value += parseInt(roman.substring(beginIndex, i)) * factor;
+                }
+                factor /= 1000;
+                beginIndex = -1;
+            }
+            else if (beginIndex == -1) {
+                beginIndex = i;
+            }
+            
+        } 
+        if (beginIndex >= 0) {
+            value += parseInt(roman.substring(beginIndex));
+        }
+        return value;
+    }
+    
     /**
      * @param roman number to convert
      * @return integer value of roman
@@ -70,6 +97,14 @@ public class Converter {
     public int parseInt(String roman) {
         if (! roman.isEmpty()) {
             int value = 0;
+//            int i1 = roman.indexOf('(');
+//            int i2 = roman.lastIndexOf(')');
+//            while (0 <= i1 && i1 < i2) {
+//                value += parseInt(roman.substring(i1 + 1, i2)) * 1000;
+//                roman = roman.substring(i2 + 1);
+//                i1 = roman.indexOf('(');
+//                i2 = roman.lastIndexOf(')');
+//            }
             ArrayList<Integer> values = createValueList(roman);
             for (int v : values) {
                 value += v;

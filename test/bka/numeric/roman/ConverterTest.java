@@ -91,7 +91,18 @@ public class ConverterTest {
         assertEquals(2008, converter.parseInt("MMVIII"));
         assertEquals(2706, converter.parseInt("MMDCCVI"));
         assertEquals(3860, converter.parseInt("MMMDCCCLX"));
-        assertEquals(3999, converter.parseInt("MMMCMXCIX"));        
+        assertEquals(3999, converter.parseInt("MMMCMXCIX")); 
+    }
+    
+    
+    @Test
+    public void testBrackets() {
+        assertEquals(2, converter.parseLong("II"));
+        assertEquals(4000, converter.parseLong("(IV)"));
+        assertEquals(5001, converter.parseLong("(V)I"));
+        assertEquals(9000050, converter.parseLong("((IX))L"));
+        assertEquals(123456789, converter.parseLong("((CXXIII))(CDLVI)DCCLXXXIX"));
+        assertEquals(9876543210L, converter.parseLong("(((IX)))((CCMXXXCVI))(DVIIL)CCX"));
     }
     
     @Test
