@@ -5,7 +5,6 @@
 package bka.numeric.roman;
 
 import java.util.*;
-import java.util.regex.*;
 
 /**
  * Converts between integers and Roman number strings
@@ -31,7 +30,7 @@ public class Converter {
             return roman.toString();
         }
         else {
-            throw new java.lang.IllegalArgumentException(Integer.toString(number) + " cannot be converted to regular Roman");
+            throw new IllegalArgumentException(Integer.toString(number) + " cannot be converted to regular Roman");
         }
     }
     
@@ -44,7 +43,7 @@ public class Converter {
      */
     String[] large(int number) {
         if (number >= 1) {
-            java.util.List<String> particals = new java.util.ArrayList<>();
+            List<String> particals = new ArrayList<>();
             while (number > 0) {
                 int partical = number % 1000;
                 if (partical > 0) {
@@ -59,19 +58,31 @@ public class Converter {
             return particals.toArray(roman);
         }
         else {
-            throw new java.lang.IllegalArgumentException(Integer.toString(number) + " cannot be converted to Roman");
+            throw new IllegalArgumentException(Integer.toString(number) + " cannot be converted to Roman");
         }    
     }
     
+    /**
+     * Convert a roman number to a long value. 
+     * Numbers between brackets are multiplied by 1000.
+     * Accepts standardized roman numers as well as non standardized numbers.
+     * Examples: (VIII)II        =         8,002
+     *           ((CXXIII))(CD)  =   123,400,000
+     *           (((I)CC)DLV)DCC = 1,200,555,700
+     * @param roman number to convert, numbers betwee
+     * @return long value of roman
+     * @throws NumberFormatException if roman is not a valid Roman number
+     */
     public long parseLong(String roman) {
         long value = 0;
         long factor = 1;
         int beginIndex = -1;
         for (int i = 0; i < roman.length(); ++i) {
-            if (roman.charAt(i) == '(') {
+            char ch = roman.charAt(i);
+            if (ch == '(') {
                 factor *= 1000;
             }
-            else if (roman.charAt(i) == ')') {
+            else if (ch == ')') {
                 if (beginIndex >=0) {
                     value += parseInt(roman.substring(beginIndex, i)) * factor;
                 }
@@ -82,7 +93,10 @@ public class Converter {
                 beginIndex = i;
             }
             
-        } 
+        }
+        if (factor != 1) {
+            throw new NumberFormatException("Invalid brackets");
+        }
         if (beginIndex >= 0) {
             value += parseInt(roman.substring(beginIndex));
         }
@@ -90,21 +104,18 @@ public class Converter {
     }
     
     /**
+     * Converts roman number to an int value
+     * Accepts standardized roman numers as well as non standardized numbers.
+     * Does not eaccept brackets
+     * Examples: XLIX = 49 (standardized)
+     *           IL   = 49 (non standardized)
      * @param roman number to convert
      * @return integer value of roman
-     * @throws NumberFormatException is roman is not a valid Roman number
+     * @throws NumberFormatException if roman is not a valid Roman number
      */
     public int parseInt(String roman) {
         if (! roman.isEmpty()) {
             int value = 0;
-//            int i1 = roman.indexOf('(');
-//            int i2 = roman.lastIndexOf(')');
-//            while (0 <= i1 && i1 < i2) {
-//                value += parseInt(roman.substring(i1 + 1, i2)) * 1000;
-//                roman = roman.substring(i2 + 1);
-//                i1 = roman.indexOf('(');
-//                i2 = roman.lastIndexOf(')');
-//            }
             ArrayList<Integer> values = createValueList(roman);
             for (int v : values) {
                 value += v;
@@ -119,7 +130,7 @@ public class Converter {
     /**
      */
     private ArrayList<Integer> createValueList(String roman) {
-        java.util.ArrayList<Integer> values = new java.util.ArrayList<>();
+        ArrayList<Integer> values = new ArrayList<>();
         int previousValue = 0;
         int previousExponent = 0;
         for (char ch : roman.toCharArray()) {
