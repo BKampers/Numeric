@@ -12,10 +12,6 @@ import static org.junit.Assert.*;
 public class ConverterTest {
     
     
-    public ConverterTest() {
-    }
-    
-
     @Before
     public void setUp() {
         converter = new Converter();
@@ -80,33 +76,41 @@ public class ConverterTest {
     @Test
     public void parseNonStandard() {
         assertEquals(4, converter.parseInt("IIII"));
+        assertEquals(18, converter.parseInt("XIIX"));
+        assertEquals(18, converter.parseInt("IIXX"));
         assertEquals(50, converter.parseInt("XXXXX"));
         assertEquals(46, converter.parseInt("IVL"));
         assertEquals(44, converter.parseInt("VIL"));
         assertEquals(98, converter.parseInt("IIC"));
         assertEquals(198, converter.parseInt("CIIC"));
         assertEquals(0, converter.parseInt("VVX"));
-        assertEquals(403, converter.parseInt("IIICD"));
+        assertEquals(50-(10-5), converter.parseInt("VXL"));
+//        assertEquals(50-(10+5), converter.parseInt("XVL"));
+        assertEquals(500-(100-3), converter.parseInt("IIICD"));
     }
     
     
     @Test
     public void parseWithBrackets() {
-        assertEquals(2, converter.parseLong("II"));
-        assertEquals(4000, converter.parseLong("(IV)"));
-        assertEquals(5001, converter.parseLong("(V)I"));
-        assertEquals(1000000, converter.parseLong("(M)"));
-        assertEquals(9000050, converter.parseLong("((IX))L"));
-        assertEquals(123456789, converter.parseLong("((CXXIII))(CDLVI)DCCLXXXIX"));
-        assertEquals(9876543210L, converter.parseLong("(((IX)))((CCMXXXCVI))(DVIIL)CCX"));
-        assertEquals(111222333444L, converter.parseLong("(((CXI)CCXXII)CCCXXXIII)CDXLIV"));
-    }
-    
-    
-    @Test 
-    public void parseEmpty() {
-        assertEquals(0, converter.parseLong(""));        
-        assertEquals(0, converter.parseLong("()"));
+        assertEquals(500, converter.parseLong("IƆ"));
+        assertEquals(1000, converter.parseLong("CIƆ"));
+        assertEquals(1001, converter.parseLong("CIƆI"));
+        assertEquals(1500, converter.parseLong("CIƆƆ"));
+        assertEquals(1500, converter.parseLong("CIƆIƆ"));
+        assertEquals(1600, converter.parseLong("CIƆIƆC"));
+        assertEquals(1999, converter.parseLong("ICIƆCIƆ"));
+        assertEquals(2000, converter.parseLong("CIƆCIƆ"));
+        assertEquals(5000, converter.parseLong("IƆƆ"));
+        assertEquals(10000, converter.parseLong("CCIƆƆ"));
+        assertEquals(10500, converter.parseLong("CCIƆƆƆ"));
+        assertEquals(15000, converter.parseLong("CCIƆƆƆƆ"));
+        assertEquals(19000, converter.parseLong("CCIƆƆCIƆCCIƆƆ"));
+        assertEquals(50000, converter.parseLong("IƆƆƆ"));
+        assertEquals(100000, converter.parseLong("CCCIƆƆƆ"));
+        assertEquals(100500, converter.parseLong("CCCIƆƆƆƆ"));
+        assertEquals(105000, converter.parseLong("CCCIƆƆƆƆƆ"));
+        assertEquals(150000, converter.parseLong("CCCIƆƆƆƆƆƆ"));
+        assertEquals(10000000000L, converter.parseLong("CCCCCCCCIƆƆƆƆƆƆƆƆ"));
     }
     
     
@@ -129,26 +133,8 @@ public class ConverterTest {
     
     
     @Test (expected = IllegalArgumentException.class)
-    public void largeNnegativeNumber() {
-        converter.large(Integer.MIN_VALUE);
-    }
-
-    
-    @Test (expected = IllegalArgumentException.class)
     public void empty() {
         converter.parseInt("");
-    }
-    
-    
-    @Test (expected = NumberFormatException.class)
-    public void testMissingClosingBrackets() {
-        converter.parseLong("(CDIX");
-    }
-    
-    
-    @Test (expected = NumberFormatException.class)
-    public void testMissingOpeningBrackets() {
-        converter.parseLong("I)I");
     }
     
     

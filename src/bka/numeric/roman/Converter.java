@@ -5,6 +5,7 @@
 package bka.numeric.roman;
 
 import java.util.*;
+import java.util.regex.*;
 
 /**
  * Converts between integers and Roman number strings
@@ -64,121 +65,175 @@ public class Converter {
     
     /**
      * Convert a roman number to a long value. 
-     * Numbers between brackets are multiplied by 1000.
+     * Numbers Brackets can be used to construct large numbers.
      * Accepts standardized roman numers as well as non standardized numbers.
-     * Examples: (VIII)II        =         8,002
-     *           ((CXXIII))(CD)  =   123,400,000
-     *           (((I)CC)DLV)DCC = 1,200,555,700
+     * Examples: I       =     1
+     *           II      =     2
+     *           IIII    =     4
+     *           IV      =     4
+     *           XLIX    =    49 (standardized)
+     *           IL      =    49 (non standardized)
+     *           D       =   500
+     *           IƆ      =   500
+     *           M       =  1000
+     *           CIƆ     =  1000
+     *           CIƆI    =  1001
+     *           CIƆƆ    =  1500
+     *           CIƆIƆ   =  1500
+     *           ICIƆCIƆ =  1999
+     *           CIƆCIƆ  =  2000
+     *           CCIƆƆ   = 10000
+     *           CCIƆƆƆ  = 10500
+     *           CCIƆƆƆƆ = 15000
      * @param roman number to convert, numbers betwee
      * @return long value of roman
      * @throws NumberFormatException if roman is not a valid Roman number
      */
     public long parseLong(String roman) {
-        long value = 0;
-        long factor = 1;
-        int beginIndex = -1;
-        for (int i = 0; i < roman.length(); ++i) {
-            char ch = roman.charAt(i);
-            if (ch == '(') {
-                factor *= 1000;
-            }
-            else if (ch == ')') {
-                if (beginIndex >=0) {
-                    value += parseInt(roman.substring(beginIndex, i)) * factor;
-                }
-                factor /= 1000;
-                beginIndex = -1;
-            }
-            else if (beginIndex == -1) {
-                beginIndex = i;
-            }
-            
+        if (roman.isEmpty()) {
+            throw new NumberFormatException("Roman number must not be empty");
         }
-        if (factor != 1) {
-            throw new NumberFormatException("Invalid brackets");
-        }
-        if (beginIndex >= 0) {
-            value += parseInt(roman.substring(beginIndex));
+        List<Long> values = createValueList(roman);
+        long value = 0; 
+        for (long v : values) {
+            value += v;
         }
         return value;
     }
     
     /**
-     * Converts roman number to an int value
-     * Accepts standardized roman numers as well as non standardized numbers.
-     * Does not eaccept brackets
-     * Examples: XLIX = 49 (standardized)
-     *           IL   = 49 (non standardized)
+     * @see parseLong
      * @param roman number to convert
      * @return integer value of roman
      * @throws NumberFormatException if roman is not a valid Roman number
+     * @throws IllegalArgumentException if roman is too large for an int
      */
     public int parseInt(String roman) {
-        if (! roman.isEmpty()) {
-            int value = 0;
-            ArrayList<Integer> values = createValueList(roman);
-            for (int v : values) {
-                value += v;
-            }
-            return value;
+        long value = parseLong(roman);
+        if (value > Integer.MAX_VALUE) {
+            throw new java.lang.IllegalArgumentException(roman + " is too large for int");
         }
-        else {
-            throw new NumberFormatException("Roman number must not be empty");
-        }
+        return (int) value;
     }
 
-    /**
-     */
-    private ArrayList<Integer> createValueList(String roman) {
-        ArrayList<Integer> values = new ArrayList<>();
-        int previousValue = 0;
-        int previousExponent = 0;
-        for (char ch : roman.toCharArray()) {
-            int index = values.size() - 1;
-            int symbolValue = symbolValue(ch);
-            int symbolExponent = symbolExponent(ch);
-            if (values.isEmpty() || symbolExponent < previousExponent) {
-                values.add(symbolValue);
+    
+    public long parse(String roman) {
+        List<Long> values = createValueList(roman);
+        long value = 0; 
+        for (long v : values) {
+            value += v;
+        }
+        return value;
+    }
+
+    
+    private List<Long> createValueList(String roman) {
+        List<Long> values = new ArrayList<>();
+        Scanner scanner = new Scanner(roman);
+        Symbol previousSymbol = null;
+        while (scanner.hasNext()) { 
+            Symbol symbol = scanner.next();
+            if (previousSymbol == null || symbol.exponent < previousSymbol.exponent) {
+                values.add(symbol.value);
             }
-            else if (previousValue < symbolValue) {
-                values.set(index, symbolValue - values.get(index));
+            else if (previousSymbol.value < symbol.value) {
+                int valueIndex = values.size() - 1;
+                values.set(valueIndex, symbol.value - values.get(valueIndex));
             }
             else {
-                values.set(index, values.get(index) + symbolValue);
+                int valueIndex = values.size() - 1;
+                values.set(valueIndex, values.get(valueIndex) + symbol.value);
             }
-            previousValue = symbolValue;
-            previousExponent = symbolExponent;
+            previousSymbol = symbol;
         }
         return values;
     }
-     
-    /**
-     */
-    private int symbolValue(char ch) {
-        int factor = 1;
-        for (char[] symbols : SYMBOLS) {
-            for (int valueIndex = 0; valueIndex < symbols.length; ++valueIndex) {
-                if (symbols[valueIndex] == ch) {
-                    return ((valueIndex == 0) ? 1 : 5) * factor;
-                }
-            }
-            factor *= 10;
+    
+    
+    private class Symbol {
+        
+        Symbol(long value, int exponent) {
+            this.value = value;
+            this.exponent = exponent;
         }
-        throw new NumberFormatException("Invalid character '" + ch + "'");
+        
+        final long value;
+        final int exponent;
+        
     }
     
-    /**
-     */
-    private int symbolExponent(char ch) {
-        for (int exponent = 0; exponent < SYMBOLS.length; ++exponent) {
-            for (char symbol : SYMBOLS[exponent]) {
-                if (symbol == ch) {
-                    return exponent;
-                }
-            }
+    
+    private class Scanner {
+        
+        Scanner(String source) {
+            Pattern pattern = Pattern.compile("C*IƆ+");
+            matcher = pattern.matcher(source);
+            this.source = source;
+            matchIndex = (matcher.find()) ? matcher.start() : -1;
         }
-        throw new NumberFormatException("Invalid character '" + ch + "'");
+        
+        boolean hasNext() {
+            return index < source.length();
+        }
+        
+        Symbol next() {
+            if (index == matchIndex) {
+                return groupSymbol();
+            }
+            return characterSymbol();
+        }
+
+        private Symbol characterSymbol() {
+            Symbol symbol = symbol(source.charAt(index));
+            index++;
+            return symbol;
+        }
+        
+        private Symbol symbol(char ch) {
+            int factor = 1;
+            for (int exponent = 0; exponent < SYMBOLS.length; ++exponent) {
+                char[] symbols = SYMBOLS[exponent];
+                for (int i = 0; i < symbols.length; ++i) {
+                    if (symbols[i] == ch) {
+                        long value = ((i == 0) ? 1 : 5) * factor;
+                        return new Symbol(value, exponent);
+                    }
+                }
+                factor *= 10;
+            }
+            throw new NumberFormatException("Invalid character '" + ch + "'");
+        }
+        
+        private Symbol groupSymbol() {
+            Symbol symbol = symbol(matcher.group());
+            index = matcher.end();
+            matchIndex = matcher.find() ? matcher.start() : -1;
+            return symbol;
+        }
+        
+        private Symbol symbol(String group) {
+            long value = 0;
+            int openCount = group.indexOf('I');
+            int closeCount = group.length() - openCount - 1;
+            if (closeCount < openCount) {
+                throw new NumberFormatException("Invalid number of closing brackets");
+            }
+            if (openCount > 0) {
+                value += 1000 * (long) Math.pow(10, openCount - 1);
+            }
+            if (closeCount - openCount > 0) {
+                value += 500 * (long) Math.pow(10, closeCount - openCount - 1);
+            }
+            return new Symbol(value, openCount + 2);
+        }
+        
+        private final Matcher matcher;
+        private final String source;
+        private int matchIndex;
+        private int index;
+        
     }
+    
     
     /**
      * Convert one digit to a roman number accounting given exponent
