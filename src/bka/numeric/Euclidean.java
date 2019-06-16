@@ -8,18 +8,6 @@ package bka.numeric;
 public final class Euclidean {
     
     
-    public static int squareDistance(java.awt.Point c1, java.awt.Point c2) {
-        int deltaX = c1.x - c2.x;
-        int deltaY = c1.y - c2.y;
-        return deltaX * deltaX + deltaY * deltaY;
-    }
-    
-    
-    public static double distance(java.awt.Point c1, java.awt.Point c2) {
-        return Math.sqrt(squareDistance(c1, c2));
-    }
-    
-
     public static int squareDistance(int[] c1, int[] c2) {
         requireEqualLengths(c1.length, c2.length);
         int squareDistance = 0;
